@@ -1,7 +1,7 @@
 # Async friendly logging classes for Python 3
 
 **Features:**
-* `async/await` friendly logging classes
+* logging classes using `async/await` for logs
 * handling of six logging levels, like in built-in logging module
 * built-in support for flushing of log records (e.g. making a web request, or writing to a database, every __n__ records)
 * flushing supports max retries, configurable delays, number of attempts, and fallback target in case of failure
@@ -18,33 +18,56 @@
 pip install rolog
 ```
 
-## Logging levels
-`rolog` implements logging levels compatible with those from built-in logging module, having the same numeric value,
-and the same name (except for __NONE__, which in the built-in library is called "NOTSET").
-__NONE, DEBUG, INFORMATION, WARNING, ERROR, CRITICAL__.
-
-```python
-class LogLevel(IntEnum):
-    NONE = 0
-    DEBUG = 10
-    INFORMATION = 20
-    WARNING = 30
-    ERROR = 40
-    CRITICAL = 50
-```
-
-## Classes
+## Classes and log levels
 
 ![Classes](https://raw.githubusercontent.com/RobertoPrevato/rolog/master/documentation/classes.png "Classes")
 
-* LoggerFactory
-* Logger
-* LogTarget
-* LogRecord
-* ExceptionLogRecord 
+|         Class          |                                               Description                                                |
+| ---------------------- | -------------------------------------------------------------------------------------------------------- |
+| **LogLevel**           | Int enum: _NONE, DEBUG, INFORMATION, WARNING, ERROR, CRITICAL_                                               |
+| **LogTarget**          | base for classes that are able to send log records to a certain destination                              |
+| **Logger**             | class responsible for creating log records and sending them to appropriate targets, by level             |
+| **LoggerFactory**      | configuration class, responsible for holding configuration of targets and providing instances of loggers |
+| **LogRecord**          | log record created by loggers, sent to configured targets by a logger                                    |
+| **ExceptionLogRecord** | log record created by loggers, including exception information                                           |
+| **FlushLogTarget**     | abstract class, derived of `LogTarget`, handling records in groups, storing them in memory               |
 
 ### Basic use
 As with the built-in `logging` module, `Logger` class is not meant to be instantiated directly, but rather obtained using a configured `LoggerFactory`.
+
+Example:
+
+```python
+import asyncio
+from rolog import LoggerFactory, Logger, LogTarget
+
+
+class PrintTarget(LogTarget):
+
+    async def log(self, record):
+        await asyncio.sleep(.1)
+        print(record.message, record.args, record.data)
+
+
+factory = LoggerFactory()
+
+factory.add_target(PrintTarget())
+
+logger = factory.get_logger(__name__)
+
+loop = asyncio.get_event_loop()
+
+async def example():
+
+    await logger.info('Lorem ipsum')
+
+    # log methods support any argument and keyword argument:
+    # these are stored in the instances of LogRecord, it is responsibility of LogTarget(s)
+    # to handle these extra parameters as desired
+    await logger.info('Hello, World!', 1, 2, 3, cool=True)
+
+loop.run_until_complete(example())
+```
 
 ## Flushing targets
 `rolog` has built-in support for log targets that flush messages in groups, this is necessary to optimize for example
@@ -98,12 +121,20 @@ can be done conveniently, by calling the `dispose` method of the logger factory.
 ```python
 # on application shutdown:
 await logger_factory.dispose()
-
-``` 
+```
 
 ## Dependency injection
 `rolog` is integrated with [rodi dependency injection library](https://pypi.org/project/rodi/), to support injection of loggers per activated class name.
-When a class that expects a parameter of `rolog.Logger` type is activated, it receives a logger for the category of the class name itself.
+When a class that expects a parameter of `rolog.Logger` type is activated, it receives a logger for the category of the class name itself. 
+For more information, please refer to the [dedicated page in project wiki](https://github.com/RobertoPrevato/rolog/wiki/Dependency-injection-with-rodi).
 
 ## Documentation
-Please refer to documentation in the project Wiki: [https://github.com/RobertoPrevato/rolog/wiki](https://github.com/RobertoPrevato/rolog/wiki).
+Please refer to documentation in the project wiki: [https://github.com/RobertoPrevato/rolog/wiki](https://github.com/RobertoPrevato/rolog/wiki).
+
+## Develop and run tests locally
+```bash
+pip install -r dev_requirements.txt
+
+# run tests using automatic discovery:
+pytest
+```
