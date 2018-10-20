@@ -1,0 +1,75 @@
+@startuml classes
+
+enum LogLevel {
+  NONE
+  DEBUG
+  INFORMATION
+  WARNING
+  ERROR
+  CRITICAL
+}
+
+class LogRecord {
+  +datetime time
+  +str logger_name
+  +LogLevel level
+  +str message
+  +tuple args
+  +dict data
+}
+
+class ExceptionLogRecord {
+  +Exception exception
+}
+
+LogRecord <|-- ExceptionLogRecord
+
+abstract class LogTarget {
+  +{abstract} log(record: LogRecord)
+}
+
+abstract class FlushLogTarget {
+  +{abstract} log_records(records: List[LogRecord])
+  ..
+  +void flush()
+  +bool should_flush()
+  ..
+  -int _max_retries
+  -float _retry_delay
+  -bool _retry_delay
+  -LogTarget _fallback_target
+}
+
+LogTarget <|-down- FlushLogTarget
+
+class Logger {
+  +str name
+  -dict[LogTarget] _targets
+  ..
+  +debug(message, *args, **kwargs)
+  +info(message, *args, **kwargs)
+  +warning(message, *args, **kwargs)
+  +error(message, *args, **kwargs)
+  +exception(message, exception, *args, **kwargs)
+  +critical(message, exception, *args, **kwargs)
+  +log(message, LogLevel level, *args, **kwargs)
+  ..
+  +create_record(message, level, *args, **kwargs)
+  +create_exception_record(message, level, *args, **kwargs)
+}
+
+class LoggerFactory {
+  +dict[LogTarget] targets
+  ..
+  +add_target(instance, LogLevel minimum_level=LogLevel.Information)
+  +dispose()
+  ..
+  +Logger get_logger(name)
+}
+
+LoggerFactory -down-> Logger
+LoggerFactory .. LogTarget
+Logger .. LogRecord
+Logger . LogTarget
+
+@enduml
