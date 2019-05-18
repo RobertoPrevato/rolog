@@ -1,4 +1,4 @@
-[![Build status](https://robertoprevato.visualstudio.com/rolog/_apis/build/status/rolog-CI)](https://robertoprevato.visualstudio.com/rolog/_build/latest?definitionId=-1)
+[![Build status](https://robertoprevato.visualstudio.com/rolog/_apis/build/status/rolog-CI)](https://robertoprevato.visualstudio.com/rolog/_build/latest?definitionId=-1) [![pypi](https://robertoprevato.vsrm.visualstudio.com/_apis/public/Release/badge/82014349-4c33-499c-b834-a13d016341b9/1/2)](https://pypi.org/project/rolog/) [![Test coverage](https://img.shields.io/azure-devops/coverage/robertoprevato/rolog/12.svg)](https://robertoprevato.visualstudio.com/rolog/_build?definitionId=12)
 
 # Async friendly logging classes for Python 3
 
