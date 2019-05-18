@@ -67,11 +67,11 @@ class FlushLogTarget(LogTarget, ABC):
 
     def __init__(self,
                  queue: Optional[Queue]=None,
-                 max_size: int=500,
-                 fallback_target: Optional[LogTarget]=None,
-                 max_retries: int=3,
-                 retry_delay: float=0.6,
-                 progressive_delay: bool=True):
+                 max_size: int = 500,
+                 fallback_target: Optional[LogTarget] = None,
+                 max_retries: int = 3,
+                 retry_delay: float = 0.6,
+                 progressive_delay: bool = True):
 
         if queue is None:
             queue = Queue()

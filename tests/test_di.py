@@ -1,4 +1,4 @@
-from rodi import ServiceCollection
+from rodi import Container
 from rolog import LoggerFactory, Logger
 from rolog.rodi import use_logging
 
@@ -15,18 +15,18 @@ class Two:
 
 
 def test_get_logger_by_name_of_activated_class():
-    services = ServiceCollection()
+    container = Container()
     factory = LoggerFactory()
 
-    use_logging(services, factory)
+    use_logging(container, factory)
 
-    services.add_exact_transient(One)
-    services.add_exact_transient(Two)
+    container.add_exact_transient(One)
+    container.add_exact_transient(Two)
 
-    provider = services.build_provider()
+    services = container.build_provider()
 
-    one = provider.get(One)
-    two = provider.get(Two)
+    one = services.get(One)
+    two = services.get(Two)
 
     assert one is not None
     assert two is not None

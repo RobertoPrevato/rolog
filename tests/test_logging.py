@@ -4,7 +4,7 @@ import pytest
 from rolog import LogLevel, LoggerFactory, LogRecord
 from rolog.targets import BuiltInLoggingTarget, DynamicBuiltInLoggingTarget
 import logging
-from rolog.tests import InMemoryTarget
+from tests import InMemoryTarget
 
 
 def test_logger_factory_logger_name():

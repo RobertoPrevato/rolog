@@ -1,9 +1,8 @@
 import pytest
 import asyncio
-import warnings
 from typing import List
 from rolog import LoggerFactory, FlushLogTarget, LogRecord
-from rolog.tests import InMemoryTarget
+from tests import InMemoryTarget
 
 
 class CrashTest(Exception):
@@ -38,6 +37,7 @@ class FailingFlushLogTarget(FlushLogTarget):
 
 
 @pytest.mark.asyncio
+@pytest.mark.filterwarnings('ignore::RuntimeWarning')
 @pytest.mark.parametrize('max_size', [
     2, 10, 20, 30
 ])
@@ -66,6 +66,7 @@ async def test_flushing(max_size):
 
 
 @pytest.mark.asyncio
+@pytest.mark.filterwarnings('ignore::RuntimeWarning')
 async def test_flushing_fallback_when_fails():
     factory = LoggerFactory()
     max_size = 2
@@ -78,8 +79,7 @@ async def test_flushing_fallback_when_fails():
     for i in range(max_size - 1):
         await logger.info(f'Message: {i}')
 
-    with warnings.catch_warnings():
-        await logger.info(f'Message: {max_size - 1}')
+    await logger.info(f'Message: {max_size - 1}')
 
     # since we forced failure, records should be logged in fallback target
     assert max_size == len(test_target.fallback.records)

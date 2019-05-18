@@ -1,3 +1,5 @@
+[![Build status](https://robertoprevato.visualstudio.com/rolog/_apis/build/status/rolog-CI)](https://robertoprevato.visualstudio.com/rolog/_build/latest?definitionId=-1)
+
 # Async friendly logging classes for Python 3
 
 **Features:**
