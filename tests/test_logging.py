@@ -1,6 +1,7 @@
 import os
 import uuid
 import pytest
+from pytest import raises
 from rolog import LogLevel, LoggerFactory, LogRecord
 from rolog.targets import BuiltInLoggingTarget, DynamicBuiltInLoggingTarget
 import logging
@@ -218,7 +219,7 @@ async def test_logger_wrapping_sync_logging():
 
     try:
         1 / 0
-    except Exception as ex:
+    except Exception:
         # passing exception
         await logger.exception('Oh, no!')
 
@@ -244,7 +245,7 @@ async def test_logger_wrapping_sync_logging_dynamic_target():
 
     try:
         1 / 0
-    except Exception as ex:
+    except Exception:
         # passing exception
         await logger.exception('Oh, no!')
 
@@ -255,3 +256,32 @@ async def test_logger_wrapping_sync_logging_dynamic_target():
         assert 'ZeroDivisionError: division by zero' in content
 
     os.remove(name + '.log')
+
+
+def test_logger_factory_get_targets():
+    factory = LoggerFactory()
+    test_target = InMemoryTarget()
+    factory.add_target(test_target, minimum_level=LogLevel.CRITICAL)
+
+    targets = factory.targets
+
+    assert targets is not None
+    assert targets[LogLevel.DEBUG] == []
+    assert targets[LogLevel.INFORMATION] == []
+    assert targets[LogLevel.CRITICAL] == [test_target]
+
+    second_target = InMemoryTarget()
+    factory.add_target(second_target, minimum_level=LogLevel.INFORMATION)
+
+    assert targets[LogLevel.INFORMATION] == [second_target]
+    assert targets[LogLevel.CRITICAL] == [test_target]
+
+
+@pytest.mark.parametrize('invalid_value', [
+    -10, -20, min(LogLevel) - 1
+])
+def test_logger_factory_raises_invalid_minimum_level(invalid_value):
+    factory = LoggerFactory()
+
+    with raises(ValueError, match='Invalid minimum_level'):
+        factory.add_target(InMemoryTarget(), minimum_level=invalid_value)

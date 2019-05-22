@@ -7,7 +7,7 @@ def readme():
 
 
 setup(name='rolog',
-      version='1.0.1',
+      version='1.0.2',
       description='Async friendly logging classes for Python 3',
       long_description=readme(),
       long_description_content_type='text/markdown',

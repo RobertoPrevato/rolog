@@ -66,7 +66,7 @@ class FlushLogTarget(LogTarget, ABC):
     (created by loggers) to the appropriate destination in groups."""
 
     def __init__(self,
-                 queue: Optional[Queue]=None,
+                 queue: Optional[Queue] = None,
                  max_size: int = 500,
                  fallback_target: Optional[LogTarget] = None,
                  max_retries: int = 3,
@@ -138,7 +138,7 @@ class FlushLogTarget(LogTarget, ABC):
 
         warnings.warn(f'Failed to log records for {self.__class__.__name__}. '
                       f'Logging failed for configured retried: {self._max_retries}; '
-                      f'A fallback target is not configured, hence log records are lost', RuntimeWarning)
+                      f'Using the configured fallback target.', RuntimeWarning)
 
         if isinstance(fallback, FlushLogTarget):
             await fallback.log_records(records)
@@ -223,9 +223,9 @@ class Logger:
     async def critical(self, message, *args, **kwargs):
         await self.log(message, LogLevel.CRITICAL, *args, **kwargs)
 
-    async def log(self, message, level: LogLevel=LogLevel.INFORMATION, *args, **kwargs):
+    async def log(self, message, level: LogLevel = LogLevel.INFORMATION, *args, **kwargs):
         if level > self.max_log_level:
-            return
+            raise ValueError(f'Invalid log level {level}, higher than maximum {max(LogLevel)}')
 
         record = self.create_record(message, level, *args, **kwargs)
         current_level = level
@@ -247,7 +247,7 @@ class LoggerFactory:
                  'on_dispose_error')
 
     def __init__(self):
-        self._targets = OrderedDict([(x, []) for x in list(LogLevel)])
+        self._targets = OrderedDict([(x, []) for x in LogLevel])
         self._instances = {}
         self.min_log_level = LogLevel.DEBUG if __debug__ else LogLevel.INFORMATION
         self.max_log_level = LogLevel(max(LogLevel))
@@ -259,7 +259,9 @@ class LoggerFactory:
 
     def add_target(self,
                    target: LogTarget,
-                   minimum_level: LogLevel=LogLevel.INFORMATION):
+                   minimum_level: LogLevel = LogLevel.NONE):
+        if minimum_level == LogLevel.NONE:
+            minimum_level = self.min_log_level
         try:
             self._targets[minimum_level].append(target)
         except KeyError:
@@ -282,8 +284,10 @@ class LoggerFactory:
         # when a LoggerFactory is disposed, it's necessary to
         # flush all targets that implement flushing of messages,
         # to not lose logs, for example when the application is closed
-        for level, target in self._targets.items():
-            if isinstance(target, FlushLogTarget):
+        for targets in self._targets.values():
+
+            flush_targets = [target for target in targets if isinstance(target, FlushLogTarget)]
+            for target in flush_targets:
                 try:
                     await target.flush()
                 except Exception as ex:
