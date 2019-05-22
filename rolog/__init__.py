@@ -58,7 +58,7 @@ class LogTarget(ABC):
 
     @abstractmethod
     async def log(self, record: LogRecord):
-        pass
+        """Logs a record to a destination."""
 
 
 class FlushLogTarget(LogTarget, ABC):
@@ -104,7 +104,7 @@ class FlushLogTarget(LogTarget, ABC):
 
     @abstractmethod
     async def log_records(self, records: List[LogRecord]):
-        pass
+        """Logs a list of records, flushing if necessary."""
 
     async def log_records_with_retries(self, records: List[LogRecord], attempt: int):
         try:

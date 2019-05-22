@@ -19,3 +19,7 @@ release:
 
 test:
 	pytest -v -W ignore
+
+
+testcov:
+	pytest --cov-report html --cov-report annotate --cov=rolog tests/
